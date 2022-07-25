@@ -132,26 +132,3 @@ class NotebookSolutionCompanion():
   def deploy_dbsql(self, input_json):
     pass
 
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-job_link
-
-# COMMAND ----------
-
-cluster_id = "0329-145545-rugby794"
-params = {"cluster_name": "Shared Autoscaling Americas cluster"}
-
-
-
-# COMMAND ----------
-
-job_link
-
-# COMMAND ----------
-
-print(f"""Reset the {params["cluster_name"]} cluster with cluster_id {cluster_id} to original definition""")
