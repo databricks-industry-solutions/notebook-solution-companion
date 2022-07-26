@@ -92,12 +92,14 @@ class NotebookSolutionCompanion():
     input_json["name"] = job_name
 
     for i, _ in enumerate(input_json["tasks"]):
-      notebook_name = input_json["tasks"][i]["notebook_task"]['notebook_path']
-      input_json["tasks"][i]["notebook_task"]['notebook_path'] = solacc_path + "/" + notebook_name
+      if "notebook_task" in input_json["tasks"][i]:
+        notebook_name = input_json["tasks"][i]["notebook_task"]['notebook_path']
+        input_json["tasks"][i]["notebook_task"]['notebook_path'] = solacc_path + "/" + notebook_name
 
     for j, _ in enumerate(input_json["job_clusters"]):
-      node_type_id_dict = input_json["job_clusters"][j]["new_cluster"]["node_type_id"]
-      input_json["job_clusters"][j]["new_cluster"]["node_type_id"] = node_type_id_dict[cloud]
+      if "new_cluster" in input_json["job_clusters"][j]:
+        node_type_id_dict = input_json["job_clusters"][j]["new_cluster"]["node_type_id"]
+        input_json["job_clusters"][j]["new_cluster"]["node_type_id"] = node_type_id_dict[cloud]
     job_json = input_json
     if cloud == "AWS": 
       job_json["job_clusters"][0]["new_cluster"]["aws_attributes"] = {
