@@ -134,8 +134,8 @@ class NotebookSolutionCompanion():
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
     input_json = self.customize_pipeline_json(input_json, self.solacc_path)
-    pipeline_name = input_json.pop("name")
-    return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, input_json, spark)
+    pipeline_name = input_json["name"]
+    return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, input_json, spark) 
     
   def deploy_dbsql(self, input_json):
     pass
