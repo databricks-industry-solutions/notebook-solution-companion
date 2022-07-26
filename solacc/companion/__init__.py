@@ -95,27 +95,28 @@ class NotebookSolutionCompanion():
       if "notebook_task" in input_json["tasks"][i]:
         notebook_name = input_json["tasks"][i]["notebook_task"]['notebook_path']
         input_json["tasks"][i]["notebook_task"]['notebook_path'] = solacc_path + "/" + notebook_name
-
-    for j, _ in enumerate(input_json["job_clusters"]):
-      if "new_cluster" in input_json["job_clusters"][j]:
-        node_type_id_dict = input_json["job_clusters"][j]["new_cluster"]["node_type_id"]
-        input_json["job_clusters"][j]["new_cluster"]["node_type_id"] = node_type_id_dict[cloud]
+        
+    if "job_clusters" in input_json:
+      for j, _ in enumerate(input_json["job_clusters"]):
+        if "new_cluster" in input_json["job_clusters"][j]:
+          node_type_id_dict = input_json["job_clusters"][j]["new_cluster"]["node_type_id"]
+          input_json["job_clusters"][j]["new_cluster"]["node_type_id"] = node_type_id_dict[cloud]
+          if cloud == "AWS": 
+            input_json["job_clusters"][j]["new_cluster"]["aws_attributes"] = {
+                              "ebs_volume_count": 0,
+                              "availability": "ON_DEMAND",
+                              "first_on_demand": 1
+                          }
+          if cloud == "MSA": 
+            input_json["job_clusters"][j]["new_cluster"]["azure_attributes"] = {
+                              "availability": "ON_DEMAND_AZURE",
+                              "first_on_demand": 1
+                          }
+          if cloud == "GCP": 
+            input_json["job_clusters"][j]["new_cluster"]["gcp_attributes"] = {
+                              "use_preemptible_executors": False
+                          }
     job_json = input_json
-    if cloud == "AWS": 
-      job_json["job_clusters"][0]["new_cluster"]["aws_attributes"] = {
-                        "ebs_volume_count": 0,
-                        "availability": "ON_DEMAND",
-                        "first_on_demand": 1
-                    }
-    if cloud == "MSA": 
-      job_json["job_clusters"][0]["new_cluster"]["azure_attributes"] = {
-                        "availability": "ON_DEMAND_AZURE",
-                        "first_on_demand": 1
-                    }
-    if cloud == "GCP": 
-      job_json["job_clusters"][0]["new_cluster"]["gcp_attributes"] = {
-                        "use_preemptible_executors": False
-                    }
     return job_json
   
   @staticmethod
