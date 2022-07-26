@@ -85,7 +85,6 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/create", params)
         cluster_id = json_response["cluster_id"]
         displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
-        
       return 
     
   @staticmethod
@@ -116,6 +115,13 @@ class NotebookSolutionCompanion():
                         "use_preemptible_executors": False
                     }
     return job_json
+  
+  @staticmethod
+  def customize_pipeline_json(input_json, solacc_path):
+    for i, _ in enumerate(input_json["libraries"]):
+      notebook_name = input_json["libraries"][i]["notebook"]['path']
+      input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
+    return input_json
     
   def get_job_param_json(self, input_json):
     self.job_params = self.customize_job_json(input_json, self.job_name, self.solacc_path, self.cloud)
@@ -127,8 +133,9 @@ class NotebookSolutionCompanion():
       self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
       
   def deploy_pipeline(self, input_json, spark):
+    input_json = self.customize_pipeline_json(input_json, self.solacc_path)
     pipeline_name = input_json.pop("name")
-    self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, input_json, spark)
+    return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, input_json, spark)
     
   def deploy_dbsql(self, input_json):
     pass
