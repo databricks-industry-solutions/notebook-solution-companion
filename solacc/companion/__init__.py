@@ -16,7 +16,7 @@ class NotebookSolutionCompanion():
     self.cloud = get_cloud()
     self.solacc_path = get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
-    self.job_name = f"[SOLACC] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
+    self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     
   @staticmethod
@@ -131,8 +131,9 @@ class NotebookSolutionCompanion():
   def deploy_compute(self, input_json):
     self.get_job_param_json(input_json)
     self.create_or_update_job_by_name(self.client, self.job_params)
-    for job_cluster_params in self.job_params["job_clusters"]:
-      self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
+    if "job_clusters" in self.job_params:
+      for job_cluster_params in self.job_params["job_clusters"]:
+        self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
     input_json = self.customize_pipeline_json(input_json, self.solacc_path)
