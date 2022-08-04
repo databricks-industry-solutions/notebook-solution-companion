@@ -5,6 +5,7 @@ from dbruntime.display import displayHTML
 import hashlib
 import json
 import re
+import time
 
 class NotebookSolutionCompanion():
   """
@@ -71,6 +72,15 @@ class NotebookSolutionCompanion():
     return pipeline_id
   
   @staticmethod
+  def edit_cluster(client, cluster_id, params)
+    cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+    while cluster_state not in ("RUNNING", "TERMINATED"): # cluster edit only works in these states; all other states will eventually turn into those two, so we wait and try later
+      time.sleep(30) 
+      cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+    json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
+    assert json_response == {}, "Cluster edit returned non-200 status"
+  
+  @staticmethod
   def create_or_update_cluster_by_name(client, params):
       """Look up a companion cluster by name and edit with the given param and return cluster id; create a new cluster if a cluster with that name does not exist"""
       clusters = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/list")["clusters"]
@@ -78,8 +88,7 @@ class NotebookSolutionCompanion():
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
       if cluster_id: 
         params["cluster_id"] = cluster_id
-        json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
-        assert json_response == {}, "Job reset returned non-200 status"
+        self.edit_cluster(client, cluster_id, params)
         displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
         
       else:
