@@ -88,7 +88,7 @@ class NotebookSolutionCompanion():
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
       if cluster_id: 
         params["cluster_id"] = cluster_id
-        self.edit_cluster(client, cluster_id, params)
+        edit_cluster(client, cluster_id, params)
         displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
         
       else:
