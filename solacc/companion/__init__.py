@@ -133,12 +133,14 @@ class NotebookSolutionCompanion():
   def get_job_param_json(self, input_json):
     self.job_params = self.customize_job_json(input_json, self.job_name, self.solacc_path, self.cloud)
   
-  def deploy_compute(self, input_json):
+  def deploy_compute(self, input_json, run_job=False):
     self.get_job_param_json(input_json)
     self.job_id = self.create_or_update_job_by_name(self.client, self.job_params)
     if "job_clusters" in self.job_params:
       for job_cluster_params in self.job_params["job_clusters"]:
         self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
+    if run_job:
+      self.run_job()
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
     input_json = self.customize_pipeline_json(input_json, self.solacc_path)
