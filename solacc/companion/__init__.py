@@ -44,7 +44,7 @@ class NotebookSolutionCompanion():
       json_response = client.execute_post_json(f"{client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
       displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
-    return 
+    return job_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
   @staticmethod
@@ -135,7 +135,7 @@ class NotebookSolutionCompanion():
   
   def deploy_compute(self, input_json):
     self.get_job_param_json(input_json)
-    self.create_or_update_job_by_name(self.client, self.job_params)
+    self.job_id = self.create_or_update_job_by_name(self.client, self.job_params)
     if "job_clusters" in self.job_params:
       for job_cluster_params in self.job_params["job_clusters"]:
         self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
@@ -147,4 +147,15 @@ class NotebookSolutionCompanion():
     
   def deploy_dbsql(self, input_json):
     pass
+  
+  def run_job(self):
+    self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
+    response = self.client.runs().wait_for(self.run_id)
+    
+    # print info about result state
+    self.test_result_state= response['state'].get('result_state', None)
+    self.life_cycle_state = response['state'].get('life_cycle_state', None)
+    print("-" * 80)
+    print(f"Job #{self.job_id}-{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
+    
 
