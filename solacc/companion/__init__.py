@@ -135,9 +135,9 @@ class NotebookSolutionCompanion():
   
   @staticmethod
   def customize_pipeline_json(input_json, solacc_path):
-    input_json["name"]  = input_json["name"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
-    input_json["storage"]  = input_json["storage"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
-    input_json["target"]  = input_json["target"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
+    input_json["name"]  = input_json["name"] 
+    input_json["storage"]  = input_json["storage"] 
+    input_json["target"]  = input_json["target"] 
     for i, _ in enumerate(input_json["libraries"]):
       notebook_name = input_json["libraries"][i]["notebook"]['path']
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
@@ -170,6 +170,7 @@ class NotebookSolutionCompanion():
     # print info about result state
     self.test_result_state= response['state'].get('result_state', None)
     self.life_cycle_state = response['state'].get('life_cycle_state', None)
+    
     print("-" * 80)
     print(f"Job #{self.job_id}-{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
     
