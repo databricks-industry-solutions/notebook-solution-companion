@@ -71,18 +71,22 @@ class NotebookSolutionCompanion():
         
     return pipeline_id
   
-  @staticmethod
-  def edit_cluster(client, cluster_id, params):
-    cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
-    while cluster_state not in ("RUNNING", "TERMINATED"): # cluster edit only works in these states; all other states will eventually turn into those two, so we wait and try later
-      time.sleep(30) 
-      cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
-    json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
-    assert json_response == {}, "Cluster edit returned non-200 status"
+  
+  
   
   @staticmethod
   def create_or_update_cluster_by_name(client, params):
       """Look up a companion cluster by name and edit with the given param and return cluster id; create a new cluster if a cluster with that name does not exist"""
+      
+      def edit_cluster(client, cluster_id, params):
+        """Wait for a cluster to be in editable states and edit it to the specified params"""
+        cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+        while cluster_state not in ("RUNNING", "TERMINATED"): # cluster edit only works in these states; all other states will eventually turn into those two, so we wait and try later
+          time.sleep(30) 
+          cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+        json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
+        assert json_response == {}, "Cluster edit returned non-200 status"
+      
       clusters = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/list")["clusters"]
       clusters_matched = list(filter(lambda cluster: params["cluster_name"] == cluster["cluster_name"], clusters))
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
