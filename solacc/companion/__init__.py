@@ -72,7 +72,7 @@ class NotebookSolutionCompanion():
     return pipeline_id
   
   @staticmethod
-  def edit_cluster(client, cluster_id, params)
+  def edit_cluster(client, cluster_id, params):
     cluster_state = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
     while cluster_state not in ("RUNNING", "TERMINATED"): # cluster edit only works in these states; all other states will eventually turn into those two, so we wait and try later
       time.sleep(30) 
