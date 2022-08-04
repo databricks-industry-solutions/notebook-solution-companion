@@ -19,6 +19,7 @@ class NotebookSolutionCompanion():
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     
+    
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
     params = job_cluster_params["new_cluster"]
@@ -121,6 +122,9 @@ class NotebookSolutionCompanion():
   
   @staticmethod
   def customize_pipeline_json(input_json, solacc_path):
+    input_json["name"]  = input_json["name"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
+    input_json["storage"]  = input_json["storage"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
+    input_json["target"]  = input_json["target"] + "_" + hashlib.sha256(solacc_path.encode()).hexdigest()
     for i, _ in enumerate(input_json["libraries"]):
       notebook_name = input_json["libraries"][i]["notebook"]['path']
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
@@ -138,7 +142,7 @@ class NotebookSolutionCompanion():
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
     input_json = self.customize_pipeline_json(input_json, self.solacc_path)
-    pipeline_name = input_json["name"]
+    pipeline_name = input_json["name"] 
     return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, input_json, spark) 
     
   def deploy_dbsql(self, input_json):
