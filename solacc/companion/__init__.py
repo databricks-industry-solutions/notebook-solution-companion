@@ -51,7 +51,7 @@ class NotebookSolutionCompanion():
   @staticmethod
   def create_or_update_pipeline_by_name(client, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
     """Look up a companion pipeline by name and edit with the given param and return pipeline id; create a new pipeline if a pipeline with that name does not exist"""
-    if not spark.catalog.tableExists(dlt_config_table):
+    if not self.table_exists(dlt_config_table, spark):
       pipeline_id = None
     else:
       dlt_id_pdf = spark.table(dlt_config_table).filter(f"solacc = '{pipeline_name}'").toPandas()
@@ -70,9 +70,6 @@ class NotebookSolutionCompanion():
         spark.createDataFrame([{"solacc": pipeline_name, "pipeline_id": pipeline_id}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dlt_config_table)
         
     return pipeline_id
-  
-  
-  
   
   @staticmethod
   def create_or_update_cluster_by_name(client, params):
@@ -142,6 +139,11 @@ class NotebookSolutionCompanion():
       notebook_name = input_json["libraries"][i]["notebook"]['path']
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
     return input_json
+  
+  @staticmethod
+  def table_exists(dbtb_string, spark):
+    db, tb =  dbtb_string.split(".")
+    return tb in [t.name for t in spark.catalog.listTables(db)]
     
   def get_job_param_json(self, input_json):
     self.job_params = self.customize_job_json(input_json, self.job_name, self.solacc_path, self.cloud)
