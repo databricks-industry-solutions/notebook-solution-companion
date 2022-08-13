@@ -40,13 +40,13 @@ class NotebookSolutionCompanion():
                      "new_settings": params}
       json_response = client.execute_post_json(f"{client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
       assert json_response == {}, "Job reset returned non-200 status"
-#       print(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
-      displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+      print(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+#       displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
     else:
       json_response = client.execute_post_json(f"{client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
-#       print(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
-      displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+      print(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+#       displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
     return job_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
@@ -95,14 +95,14 @@ class NotebookSolutionCompanion():
       if cluster_id: 
         params["cluster_id"] = cluster_id
         edit_cluster(client, cluster_id, params)
-#         print(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
-        displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
+        print(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
+#         displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> job to original definition""")
         
       else:
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/create", params)
         cluster_id = json_response["cluster_id"]
-#         print(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
-        displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
+        print(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
+#         displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
       return 
     
   @staticmethod
@@ -134,8 +134,7 @@ class NotebookSolutionCompanion():
             input_json["job_clusters"][j]["new_cluster"]["gcp_attributes"] = {
                               "use_preemptible_executors": False
                           }
-    job_json = input_json
-    return job_json
+    return input_json
   
   @staticmethod
   def customize_pipeline_json(input_json, solacc_path):
