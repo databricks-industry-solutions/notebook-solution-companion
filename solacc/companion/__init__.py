@@ -171,5 +171,6 @@ class NotebookSolutionCompanion():
     
     print("-" * 80)
     print(f"Job #{self.job_id}-{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
+    assert self.test_result_state == "SUCCESS", f"Job #{self.job_id}-{self.run_id} Run failed" 
     
 
