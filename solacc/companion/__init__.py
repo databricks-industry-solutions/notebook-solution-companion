@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import time
+import copy
 
 class NotebookSolutionCompanion():
   """
@@ -143,7 +144,7 @@ class NotebookSolutionCompanion():
     
   
   def deploy_compute(self, input_json, run_job=False):
-    self.job_input_json = input_json.copy()
+    self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
     self.job_id = self.create_or_update_job_by_name(self.client, self.job_params)
     if not run_job: # if we don't run job, create interactive cluster
@@ -154,7 +155,7 @@ class NotebookSolutionCompanion():
       self.run_job()
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
-    self.pipeline_input_json = input_json.copy()
+    self.pipeline_input_json = copy.deepcopy(input_json)
     self.pipeline_params = self.customize_pipeline_json(self.pipeline_input_json, self.solacc_path)
     pipeline_name = self.pipeline_params["name"] 
     return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, self.pipeline_params, spark) 
