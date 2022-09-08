@@ -161,7 +161,9 @@ class NotebookSolutionCompanion():
     return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, self.pipeline_params, spark) 
     
   def deploy_dbsql(self, input_json):
-    pass
+    client = self.client
+    result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+    displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
   
   def run_job(self):
     self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
