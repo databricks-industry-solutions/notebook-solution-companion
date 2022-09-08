@@ -164,7 +164,7 @@ class NotebookSolutionCompanion():
     client = self.client
     result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
     displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
-    return result
+    
   
   def run_job(self):
     self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
