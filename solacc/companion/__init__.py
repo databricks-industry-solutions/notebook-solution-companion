@@ -161,11 +161,11 @@ class NotebookSolutionCompanion():
   def deploy_compute(self, input_json, run_job=False):
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
-    self.job_id = self.create_or_update_job_by_name(self.client, self.job_params)
+    self.job_id = self.create_or_update_job_by_name(self.job_params)
     if not run_job: # if we don't run job, create interactive cluster
       if "job_clusters" in self.job_params:
         for job_cluster_params in self.job_params["job_clusters"]:
-          _ = self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
+          _ = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params))
     else:
       self.run_job()
       
@@ -173,7 +173,7 @@ class NotebookSolutionCompanion():
     self.pipeline_input_json = copy.deepcopy(input_json)
     self.pipeline_params = self.customize_pipeline_json(self.pipeline_input_json, self.solacc_path)
     pipeline_name = self.pipeline_params["name"] 
-    return self.create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, self.pipeline_params, spark) 
+    return self.create_or_update_pipeline_by_name(dlt_config_table, pipeline_name, self.pipeline_params, spark) 
     
   def deploy_dbsql(self, input_path):
     with open(input_path) as f:
