@@ -182,7 +182,20 @@ class NotebookSolutionCompanion():
     result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
     displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
     
-  
+  def submit_run(self, task_json):
+    json_response = self.client.execute_post_json(f"{self.client.endpoint}/2.1/jobs/runs/submit", task_json)
+    assert "run_id" in json_response, "task_json submission errored"
+    run_id = json_response["run_id"]
+    state = self.client.execute_get_json(f"{self.client.endpoint}/2.1/jobs/runs/get/run_id={run_id}")["state"]
+    while state["life_cycle_state"] != "TERMINATED" and state["life_cycle_state"] != "INTERNAL_ERROR":
+      time.sleep(30)
+      state = self.client.execute_get_json(f"{self.client.endpoint}/2.1/jobs/runs/get/run_id={run_id}")["state"]
+    if state["life_cycle_state"] == "TERMINATED" and state["result_state"] == "SUCCESS":
+      print("Submitted run completed successfully")
+    else 
+      print("Submitted run did not complete successfully")
+    return
+
   def run_job(self):
     self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
     response = self.client.runs().wait_for(self.run_id)
