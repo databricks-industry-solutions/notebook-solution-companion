@@ -139,7 +139,8 @@ class NotebookSolutionCompanion():
     return input_json
   
   @staticmethod
-  def customize_cluster_json(input_json, cloud):
+  def customize_cluster_json(input_json):
+    cloud = get_cloud()
     if cloud == "AWS": 
       input_json["aws_attributes"] = {
                         "availability": "ON_DEMAND",
