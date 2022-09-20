@@ -28,29 +28,27 @@ class NotebookSolutionCompanion():
     params["cluster_name"] = f"""{job_cluster_params["job_cluster_key"]}"""
     params["autotermination_minutes"] = 45 # adding a default autotermination as best practice
     return params
-  
-  @staticmethod
-  def create_or_update_job_by_name(client, params):
+
+  def create_or_update_job_by_name(self, params):
     """Look up the companion job by name and resets it with the given param and return job id; create a new job if a job with that name does not exist"""
-    jobs = client.jobs().list()
+    jobs = self.client.jobs().list()
     jobs_matched = list(filter(lambda job: job["settings"]["name"] == params["name"], jobs)) 
     assert len(jobs_matched) <= 1, f"""Two jobs with the same name {params["name"]} exist; please manually inspect them to make sure solacc job names are unique"""
     job_id = jobs_matched[0]["job_id"] if len(jobs_matched)  == 1 else None
     if job_id: 
       reset_params = {"job_id": job_id,
                      "new_settings": params}
-      json_response = client.execute_post_json(f"{client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
+      json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
       assert json_response == {}, "Job reset returned non-200 status"
       displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
     else:
-      json_response = client.execute_post_json(f"{client.endpoint}/api/2.1/jobs/create", params)
+      json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
       displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
     return job_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
-  @staticmethod
-  def create_or_update_pipeline_by_name(client, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
+  def create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
     """Look up a companion pipeline by name and edit with the given param and return pipeline id; create a new pipeline if a pipeline with that name does not exist"""
     db, tb =  dlt_config_table.split(".")
     dlt_config_table_exists = tb in [t.name for t in spark.catalog.listTables(db)]
@@ -64,9 +62,9 @@ class NotebookSolutionCompanion():
       
     if pipeline_id:
         dlt_definition_dict['id'] = pipeline_id
-        client.execute_put_json(f"{client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
+        self.client.execute_put_json(f"{self.client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
     else:
-        response = DBAcademyRestClient().pipelines().create_from_dict(dlt_definition_dict)
+        response = self.client.pipelines().create_from_dict(dlt_definition_dict)
         pipeline_id = response["pipeline_id"]
         # log pipeline id to the cicd dlt table: we use this delta table to store pipeline id information because looking up pipeline id via API can sometimes bring back a lot of data into memory and cause OOM error; this table is user-specific
         # Reusing the DLT pipeline allows for DLT run history to accumulate over time rather than to be wiped out after each deployment. DLT has some UI components that only show up after the pipeline is executed at least twice. 
@@ -74,8 +72,7 @@ class NotebookSolutionCompanion():
         
     return pipeline_id
   
-  @staticmethod
-  def create_or_update_cluster_by_name(client, params):
+  def create_or_update_cluster_by_name(self, params):
       """Look up a companion cluster by name and edit with the given param and return cluster id; create a new cluster if a cluster with that name does not exist"""
       
       def edit_cluster(client, cluster_id, params):
@@ -87,16 +84,16 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
         assert json_response == {}, "Cluster edit returned non-200 status"
       
-      clusters = client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/list")["clusters"]
+      clusters = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/list")["clusters"]
       clusters_matched = list(filter(lambda cluster: params["cluster_name"] == cluster["cluster_name"], clusters))
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
       if cluster_id: 
         params["cluster_id"] = cluster_id
-        edit_cluster(client, cluster_id, params)
+        edit_cluster(self.client, cluster_id, params)
         displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster to original definition""")
         
       else:
-        json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/create", params)
+        json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.0/clusters/create", params)
         cluster_id = json_response["cluster_id"]
         displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
       return cluster_id
@@ -175,7 +172,7 @@ class NotebookSolutionCompanion():
     self.pipeline_input_json = copy.deepcopy(input_json)
     self.pipeline_params = self.customize_pipeline_json(self.pipeline_input_json, self.solacc_path)
     pipeline_name = self.pipeline_params["name"] 
-    return self.create_or_update_pipeline_by_name(self.client, dlt_config_table, pipeline_name, self.pipeline_params, spark) 
+    return self.create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, self.pipeline_params, spark) 
     
   def deploy_dbsql(self, input_path):
     with open(input_path) as f:
