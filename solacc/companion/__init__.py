@@ -99,7 +99,7 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/create", params)
         cluster_id = json_response["cluster_id"]
         displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
-      return 
+      return cluster_id
     
   @staticmethod
   def customize_job_json(input_json, job_name, solacc_path, cloud):
@@ -150,7 +150,7 @@ class NotebookSolutionCompanion():
     if not run_job: # if we don't run job, create interactive cluster
       if "job_clusters" in self.job_params:
         for job_cluster_params in self.job_params["job_clusters"]:
-          self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
+          _ = self.create_or_update_cluster_by_name(self.client, self.convert_job_cluster_to_cluster(job_cluster_params))
     else:
       self.run_job()
       
