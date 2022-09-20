@@ -117,14 +117,13 @@ class NotebookSolutionCompanion():
           input_json["job_clusters"][j]["new_cluster"]["node_type_id"] = node_type_id_dict[cloud]
           if cloud == "AWS": 
             input_json["job_clusters"][j]["new_cluster"]["aws_attributes"] = {
-                              "ebs_volume_count": 0,
                               "availability": "ON_DEMAND",
-                              "first_on_demand": 1
+                              "zone_id": "auto"
                           }
           if cloud == "MSA": 
             input_json["job_clusters"][j]["new_cluster"]["azure_attributes"] = {
                               "availability": "ON_DEMAND_AZURE",
-                              "first_on_demand": 1
+                              "zone_id": "auto"
                           }
           if cloud == "GCP": 
             input_json["job_clusters"][j]["new_cluster"]["gcp_attributes"] = {
@@ -141,7 +140,25 @@ class NotebookSolutionCompanion():
       notebook_name = input_json["libraries"][i]["notebook"]['path']
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
     return input_json
-    
+  
+  @staticmethod
+  def customize_cluster_json(input_json, cloud):
+    if cloud == "AWS": 
+      input_json["aws_attributes"] = {
+                        "availability": "ON_DEMAND",
+                        "zone_id": "auto"
+                    }
+    if cloud == "MSA": 
+      input_json["azure_attributes"] = {
+                        "availability": "ON_DEMAND_AZURE",
+                        "zone_id": "auto"
+                    }
+    if cloud == "GCP": 
+      input_json["gcp_attributes"] = {
+                        "use_preemptible_executors": False
+                        "zone_id": "auto"
+                    }
+    return input_json
   
   def deploy_compute(self, input_json, run_job=False):
     self.job_input_json = copy.deepcopy(input_json)
