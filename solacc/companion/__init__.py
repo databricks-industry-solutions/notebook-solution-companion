@@ -192,7 +192,7 @@ class NotebookSolutionCompanion():
       state = self.client.execute_get_json(f"{self.client.endpoint}/2.1/jobs/runs/get/run_id={run_id}")["state"]
     if state["life_cycle_state"] == "TERMINATED" and state["result_state"] == "SUCCESS":
       print("Submitted run completed successfully")
-    else 
+    else: 
       print("Submitted run did not complete successfully")
     return
 
