@@ -153,7 +153,7 @@ class NotebookSolutionCompanion():
                     }
     if cloud == "GCP": 
       input_json["gcp_attributes"] = {
-                        "use_preemptible_executors": False
+                        "use_preemptible_executors": False,
                         "zone_id": "auto"
                     }
     return input_json
