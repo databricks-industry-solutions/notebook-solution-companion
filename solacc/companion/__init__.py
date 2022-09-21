@@ -99,7 +99,8 @@ class NotebookSolutionCompanion():
       return cluster_id
     
   @staticmethod
-  def customize_cluster_json(input_json, cloud):
+  def customize_cluster_json(input_json):
+    cloud = get_cloud()
     node_type_id_dict = copy.deepcopy(input_json["node_type_id"]) 
     input_json["node_type_id"] = node_type_id_dict[cloud]
     if cloud == "AWS": 
