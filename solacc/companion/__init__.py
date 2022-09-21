@@ -84,7 +84,7 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
         assert json_response == {}, "Cluster edit returned non-200 status"
       
-      params = Class.customize_cluster_json(params)
+      params = NotebookSolutionCompanion.customize_cluster_json(params)
       clusters = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/list")["clusters"]
       clusters_matched = list(filter(lambda cluster: params["cluster_name"] == cluster["cluster_name"], clusters))
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
