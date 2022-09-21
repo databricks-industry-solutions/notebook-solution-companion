@@ -84,6 +84,7 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
         assert json_response == {}, "Cluster edit returned non-200 status"
       
+      params = Class.customize_cluster_json(params)
       clusters = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/list")["clusters"]
       clusters_matched = list(filter(lambda cluster: params["cluster_name"] == cluster["cluster_name"], clusters))
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
@@ -97,6 +98,27 @@ class NotebookSolutionCompanion():
         cluster_id = json_response["cluster_id"]
         displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
       return cluster_id
+    
+  @staticmethod
+  def customize_cluster_json(input_json):
+    cloud = get_cloud()
+    node_type_id_dict = input_json["node_type_id"]
+    input_json["node_type_id"] = node_type_id_dict[cloud]
+    if cloud == "AWS": 
+      input_json["aws_attributes"] = {
+                        "availability": "ON_DEMAND",
+                        "zone_id": "auto"
+                    }
+    if cloud == "MSA": 
+      input_json["azure_attributes"] = {
+                        "availability": "ON_DEMAND_AZURE",
+                        "zone_id": "auto"
+                    }
+    if cloud == "GCP": 
+      input_json["gcp_attributes"] = {
+                        "use_preemptible_executors": False
+                    }
+    return input_json
     
   @staticmethod
   def customize_job_json(input_json, job_name, solacc_path, cloud):
