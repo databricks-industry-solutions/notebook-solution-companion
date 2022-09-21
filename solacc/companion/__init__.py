@@ -84,7 +84,7 @@ class NotebookSolutionCompanion():
         json_response = client.execute_post_json(f"{client.endpoint}/api/2.0/clusters/edit", params) # returns {} if status is 200
         assert json_response == {}, "Cluster edit returned non-200 status"
       
-      params = NotebookSolutionCompanion.customize_cluster_json(params)
+      params = NotebookSolutionCompanion.customize_cluster_json(params, self.cloud)
       clusters = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/list")["clusters"]
       clusters_matched = list(filter(lambda cluster: params["cluster_name"] == cluster["cluster_name"], clusters))
       cluster_id = clusters_matched[0]["cluster_id"] if len(clusters_matched) == 1 else None
@@ -100,9 +100,8 @@ class NotebookSolutionCompanion():
       return cluster_id
     
   @staticmethod
-  def customize_cluster_json(input_json):
-    cloud = get_cloud()
-    node_type_id_dict = input_json["node_type_id"]
+  def customize_cluster_json(input_json, cloud):
+    node_type_id_dict = copy.deepcopy(input_json["node_type_id"]) 
     input_json["node_type_id"] = node_type_id_dict[cloud]
     if cloud == "AWS": 
       input_json["aws_attributes"] = {
@@ -152,9 +151,6 @@ class NotebookSolutionCompanion():
   
   @staticmethod
   def customize_pipeline_json(input_json, solacc_path):
-    input_json["name"]  = input_json["name"] 
-    input_json["storage"]  = input_json["storage"] 
-    input_json["target"]  = input_json["target"] 
     for i, _ in enumerate(input_json["libraries"]):
       notebook_name = input_json["libraries"][i]["notebook"]['path']
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
