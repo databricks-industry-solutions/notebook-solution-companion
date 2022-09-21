@@ -160,28 +160,6 @@ class NotebookSolutionCompanion():
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
     return input_json
   
-  @staticmethod
-  def customize_cluster_json(input_json):
-    cloud = get_cloud()
-    node_type_id_dict = input_json["node_type_id"]
-    input_json["node_type_id"] = node_type_id_dict[cloud]
-    if cloud == "AWS": 
-      input_json["aws_attributes"] = {
-                        "availability": "ON_DEMAND",
-                        "zone_id": "auto"
-                    }
-    if cloud == "MSA": 
-      input_json["azure_attributes"] = {
-                        "availability": "ON_DEMAND_AZURE",
-                        "zone_id": "auto"
-                    }
-    if cloud == "GCP": 
-      input_json["gcp_attributes"] = {
-                        "use_preemptible_executors": False,
-                        "zone_id": "auto"
-                    }
-    return input_json
-  
   def deploy_compute(self, input_json, run_job=False):
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
