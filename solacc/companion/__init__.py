@@ -26,7 +26,7 @@ class NotebookSolutionCompanion():
   def convert_job_cluster_to_cluster(job_cluster_params):
     params = job_cluster_params["new_cluster"]
     params["cluster_name"] = f"""{job_cluster_params["job_cluster_key"]}"""
-    params["autotermination_minutes"] = 45 # adding a default autotermination as best practice
+    params["autotermination_minutes"] = 15 # adding a default autotermination as best practice
     return params
 
   def create_or_update_job_by_name(self, params):
@@ -156,7 +156,7 @@ class NotebookSolutionCompanion():
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
     return input_json
   
-  def deploy_compute(self, input_json, run_job=False):
+  def deploy_compute(self, input_json, run_job=False, wait=0):
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
     self.job_id = self.create_or_update_job_by_name(self.job_params)
@@ -165,6 +165,7 @@ class NotebookSolutionCompanion():
         for job_cluster_params in self.job_params["job_clusters"]:
           _ = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params))
     else:
+      time.sleep(wait) # adding wait (seconds) to allow time for JSL cluster configuration using Partner Connect to complete
       self.run_job()
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
