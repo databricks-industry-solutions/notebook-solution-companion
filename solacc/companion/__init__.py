@@ -160,12 +160,12 @@ class NotebookSolutionCompanion():
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
     self.job_id = self.create_or_update_job_by_name(self.job_params)
+    time.sleep(wait) # adding wait (seconds) to allow time for JSL cluster configuration using Partner Connect to complete
     if not run_job: # if we don't run job, create interactive cluster
       if "job_clusters" in self.job_params:
         for job_cluster_params in self.job_params["job_clusters"]:
           _ = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params))
     else:
-      time.sleep(wait) # adding wait (seconds) to allow time for JSL cluster configuration using Partner Connect to complete
       self.run_job()
       
   def deploy_pipeline(self, input_json, dlt_config_table, spark):
