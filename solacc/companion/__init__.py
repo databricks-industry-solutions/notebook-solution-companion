@@ -175,11 +175,15 @@ class NotebookSolutionCompanion():
     return self.create_or_update_pipeline_by_name(dlt_config_table, pipeline_name, self.pipeline_params, spark) 
     
   def deploy_dbsql(self, input_path):
-    with open(input_path) as f:
-      input_json = json.load(f)
-    client = self.client
-    result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
-    displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
+    # TODO: Remove try except once the API is in public preview
+    try:
+      with open(input_path) as f:
+        input_json = json.load(f)
+      client = self.client
+      result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+      displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
+    except:
+      pass
     
   def submit_run(self, task_json):
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
