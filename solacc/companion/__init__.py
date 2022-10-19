@@ -45,7 +45,7 @@ class NotebookSolutionCompanion():
       
       if self.print_html:
           displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
-        else:
+      else:
           print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
           
     else:
@@ -53,7 +53,7 @@ class NotebookSolutionCompanion():
       job_id = json_response["job_id"]
       if self.print_html:
           displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
-        else:
+      else:
           print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
           
     return job_id
@@ -225,7 +225,7 @@ class NotebookSolutionCompanion():
     self.life_cycle_state = response['state'].get('life_cycle_state', None)
     
     print("-" * 80)
-    print(f"Job #{self.job_id}-{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
+    print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
     assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate the job run in this current workspace at #job/{self.job_id}/run/{self.run_id}" 
     
 
