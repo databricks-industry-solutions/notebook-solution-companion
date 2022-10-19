@@ -22,7 +22,7 @@ class NotebookSolutionCompanion():
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     self.workspace_url = get_workspace_url()
-    self.print_html = dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion")[:2]>="11"
+    self.print_html = int(dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
     
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
