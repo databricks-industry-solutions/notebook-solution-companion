@@ -1,6 +1,6 @@
 # Databricks notebook source
 from dbacademy.dbrest import DBAcademyRestClient
-from dbacademy.dbgems import get_cloud, get_notebook_dir
+from dbacademy.dbgems import get_cloud, get_notebook_dir, get_workspace_url
 from dbruntime.display import displayHTML
 import hashlib
 import json
@@ -20,7 +20,8 @@ class NotebookSolutionCompanion():
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
-    
+    self.workspace_url = get_workspace_url()
+    self.print_html = spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion")[:2]>="11"
     
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
@@ -181,7 +182,8 @@ class NotebookSolutionCompanion():
         input_json = json.load(f)
       client = self.client
       result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
-      displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
+#       displayHTML(f"""Created <a href="" target="_blank">{result["name"]}</a> dashboard""")
+      print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}-{result['slug']}""")
     except:
       pass
     
