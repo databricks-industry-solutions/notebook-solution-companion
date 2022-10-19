@@ -1,5 +1,6 @@
 # Databricks notebook source
 from dbacademy.dbrest import DBAcademyRestClient
+from dbacademy import dbgems 
 from dbacademy.dbgems import get_cloud, get_notebook_dir, get_workspace_url
 from dbruntime.display import displayHTML
 import hashlib
@@ -21,7 +22,7 @@ class NotebookSolutionCompanion():
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     self.workspace_url = get_workspace_url()
-    self.print_html = spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion")[:2]>="11"
+    self.print_html = dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion")[:2]>="11"
     
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
@@ -41,11 +42,20 @@ class NotebookSolutionCompanion():
                      "new_settings": params}
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
       assert json_response == {}, "Job reset returned non-200 status"
-      displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+      
+      if self.print_html:
+          displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+        else:
+          print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
+          
     else:
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
-      displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+      if self.print_html:
+          displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+        else:
+          print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
+          
     return job_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
@@ -91,12 +101,21 @@ class NotebookSolutionCompanion():
       if cluster_id: 
         params["cluster_id"] = cluster_id
         edit_cluster(self.client, cluster_id, params)
-        displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster to original definition""")
+        if self.print_html:
+          displayHTML(f"""Reset the <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster to original definition""")
+        else:
+          print(f"""Reset the {params["cluster_name"]} cluster at: {self.workspace_url}/#setting/clusters/{cluster_id}/configuration""")
+          
+        
         
       else:
         json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.0/clusters/create", params)
         cluster_id = json_response["cluster_id"]
-        displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
+        if self.print_html:
+          displayHTML(f"""Created <a href="/#setting/clusters/{cluster_id}/configuration" target="_blank">{params["cluster_name"]}</a> cluster""")
+        else:
+          print(f"""Created {params["cluster_name"]} cluster at: {self.workspace_url}/#setting/clusters/{cluster_id}/configuration""")
+        
       return cluster_id
     
   @staticmethod
@@ -182,8 +201,10 @@ class NotebookSolutionCompanion():
         input_json = json.load(f)
       client = self.client
       result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
-#       displayHTML(f"""Created <a href="" target="_blank">{result["name"]}</a> dashboard""")
-      print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}-{result['slug']}""")
+      if self.print_html:
+          displayHTML(f"""Created <a href="" target="_blank">{result["name"]}</a> dashboard""")
+      else:
+          print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}-{result['slug']}""")
     except:
       pass
     
