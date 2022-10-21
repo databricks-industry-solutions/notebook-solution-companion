@@ -167,6 +167,12 @@ class NotebookSolutionCompanion():
             input_json["job_clusters"][j]["new_cluster"]["gcp_attributes"] = {
                               "use_preemptible_executors": False
                           }
+      input_json["access_control_list"] = [
+          {
+          "user_name": "users",
+          "permission_level": "CAN_MANAGE_RUN"
+          }
+      ]
     return input_json
   
   @staticmethod
@@ -212,9 +218,10 @@ class NotebookSolutionCompanion():
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
     assert "run_id" in json_response, "task_json submission errored"
     run_id = json_response["run_id"]
+    job_id = json_response["job_id"]
     response = self.client.runs().wait_for(run_id)
     result_state= response['state'].get('result_state', None)
-    assert result_state == "SUCCESS", f"Run {run_id} failed" 
+    assert result_state == "SUCCESS", f"Run failed; please investigate at: {self.workspace_url}#job/{job_id}/run/{run_id}" 
 
   def run_job(self):
     self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
@@ -226,6 +233,6 @@ class NotebookSolutionCompanion():
     
     print("-" * 80)
     print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
-    assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate the job run in this current workspace at #job/{self.job_id}/run/{self.run_id}" 
+    assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}" 
     
 
