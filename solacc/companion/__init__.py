@@ -218,10 +218,9 @@ class NotebookSolutionCompanion():
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
     assert "run_id" in json_response, "task_json submission errored"
     run_id = json_response["run_id"]
-    job_id = json_response["job_id"]
     response = self.client.runs().wait_for(run_id)
     result_state= response['state'].get('result_state', None)
-    assert result_state == "SUCCESS", f"Run failed; please investigate at: {self.workspace_url}#job/{job_id}/run/{run_id}" 
+    assert result_state == "SUCCESS", f"Run failed; please investigate at: {self.workspace_url}#job/<job_id>/run/{run_id} where the <job_id> is the part before `-` on the printed output above" 
 
   def run_job(self):
     self.run_id = self.client.jobs().run_now(self.job_id)["run_id"]
