@@ -169,7 +169,7 @@ class NotebookSolutionCompanion():
                           }
       input_json["access_control_list"] = [
           {
-          "user_name": "users",
+          "group_name": "users",
           "permission_level": "CAN_MANAGE_RUN"
           }
       ]
