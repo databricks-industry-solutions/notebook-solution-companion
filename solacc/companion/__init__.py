@@ -211,9 +211,10 @@ class NotebookSolutionCompanion():
           jck = job_cluster_params["job_cluster_key"]
           if "new_cluster" in job_cluster_params:
             jcid = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params)) # returns cluster id
-            self.start_cluster(jcid)
             jcl = self.get_library_list_for_cluster(self.job_input_json, jck)
-            self.install_libraries(jcid, jcl)
+            if jcl:
+              self.start_cluster(jcid)
+              self.install_libraries(jcid, jcl)
     else:
       self.run_job()
       
