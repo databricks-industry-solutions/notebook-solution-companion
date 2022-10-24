@@ -182,6 +182,29 @@ class NotebookSolutionCompanion():
       input_json["libraries"][i]["notebook"]['path'] = solacc_path + "/" + notebook_name
     return input_json
   
+  def start_cluster(self, cluster_id):
+    "starts cluster if terminated; no op otherwise"
+    cluster_state = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+    if cluster_state in ("TERMINATED"):
+      response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.0/clusters/start", {"cluster_id": cluster_id})
+      assert response == {}, "" # returns {} if 200
+      return
+     
+
+  
+  def install_libraries(self, jcid, jcl):
+    """install_libraries is not synchronous: does not block until installs complete""" 
+    self.client.execute_post_json(f"{self.client.endpoint}/api/2.0/libraries/install", {"cluster_id": jcid, "libraries":jcl} )
+    
+  @staticmethod
+  def get_library_list_for_cluster(job_input_json, jck):
+    jcl = []
+    for t in job_input_json["tasks"]:
+      if t["job_cluster_key"] == jck and "libraries" in t:
+        if t["libraries"]:
+          jcl += t["libraries"]
+    return jcl
+  
   def deploy_compute(self, input_json, run_job=False, wait=0):
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
@@ -190,7 +213,13 @@ class NotebookSolutionCompanion():
     if not run_job: # if we don't run job, create interactive cluster
       if "job_clusters" in self.job_params:
         for job_cluster_params in self.job_params["job_clusters"]:
-          _ = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params))
+          jck = job_cluster_params["job_cluster_key"]
+          if "new_cluster" in job_cluster_params:
+            jcid = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params)) # returns cluster id
+            jcl = self.get_library_list_for_cluster(self.job_input_json, jck)
+            if jcl:
+              self.start_cluster(jcid)
+              self.install_libraries(jcid, jcl)
     else:
       self.run_job()
       
@@ -232,6 +261,4 @@ class NotebookSolutionCompanion():
     
     print("-" * 80)
     print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
-    assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}" 
-    
-
+    assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}"
