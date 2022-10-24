@@ -184,7 +184,7 @@ class NotebookSolutionCompanion():
   
   def start_cluster(self, cluster_id):
     "starts cluster if terminated; no op otherwise"
-    cluster_state = self.client.execute_get_json(f"{client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
+    cluster_state = self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/clusters/get?cluster_id={cluster_id}")["state"]
     if cluster_state in ("TERMINATED"):
       response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.0/clusters/start", {"cluster_id": cluster_id})
       assert response == {}, "" # returns {} if 200
