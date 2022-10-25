@@ -200,9 +200,10 @@ class NotebookSolutionCompanion():
   def get_library_list_for_cluster(job_input_json, jck):
     jcl = []
     for t in job_input_json["tasks"]:
-      if t["job_cluster_key"] == jck and "libraries" in t:
-        if t["libraries"]:
-          jcl += t["libraries"]
+      if "job_cluster_key" in t: # task such as DLT pipelines may not include a job cluster key
+        if t["job_cluster_key"] == jck and "libraries" in t:
+          if t["libraries"]:
+            jcl += t["libraries"]
     return jcl
   
   def deploy_compute(self, input_json, run_job=False, wait=0):
