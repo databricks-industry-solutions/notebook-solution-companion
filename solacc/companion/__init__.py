@@ -206,7 +206,6 @@ class NotebookSolutionCompanion():
             jcl += t["libraries"]
     return jcl
   
-  @staticmethod
   def set_acl_for_cluster(self, jcid):
     response = self.client.execute_patch_json(f"{self.client.endpoint}/api/2.0/repos/permissions/clusters/{jcid}", 
                           {
