@@ -206,6 +206,19 @@ class NotebookSolutionCompanion():
             jcl += t["libraries"]
     return jcl
   
+  @staticmethod
+  def set_acl_for_cluster(self, jcid):
+    response = self.client.execute_patch_json(f"{self.client.endpoint}/api/2.0/repos/permissions/clusters/{jcid}", 
+                          {
+                            "access_control_list": [
+                              {
+                                "group_name": "users",
+                                "permission_level": "CAN_RESTART"
+                              }
+                            ]
+                          })
+
+  
   def deploy_compute(self, input_json, run_job=False, wait=0):
     self.job_input_json = copy.deepcopy(input_json)
     self.job_params = self.customize_job_json(self.job_input_json, self.job_name, self.solacc_path, self.cloud)
@@ -217,6 +230,7 @@ class NotebookSolutionCompanion():
           jck = job_cluster_params["job_cluster_key"]
           if "new_cluster" in job_cluster_params:
             jcid = self.create_or_update_cluster_by_name(self.convert_job_cluster_to_cluster(job_cluster_params)) # returns cluster id
+            self.set_acl_for_cluster(jcid)
             jcl = self.get_library_list_for_cluster(self.job_input_json, jck)
             if jcl:
               self.start_cluster(jcid)
@@ -263,3 +277,7 @@ class NotebookSolutionCompanion():
     print("-" * 80)
     print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
     assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}"
+
+# COMMAND ----------
+
+
