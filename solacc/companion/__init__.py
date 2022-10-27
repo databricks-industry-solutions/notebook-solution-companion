@@ -207,7 +207,7 @@ class NotebookSolutionCompanion():
     return jcl
   
   def set_acl_for_cluster(self, jcid):
-    response = self.client.execute_patch_json(f"{self.client.endpoint}/api/2.0/repos/permissions/clusters/{jcid}", 
+    response = self.client.execute_patch_json(f"{self.client.endpoint}/api/2.0/preview/permissions/clusters/{jcid}", 
                           {
                             "access_control_list": [
                               {
