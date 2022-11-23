@@ -181,7 +181,7 @@ class NotebookSolutionCompanion():
         input_json = json.load(f)
       client = self.client
       result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
-      displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}-{result['slug']}" target="_blank">{result["name"]}</a> dashboard""")
+      displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}" target="_blank">{result["name"]}</a> dashboard""")
     except:
       pass
     
