@@ -251,9 +251,9 @@ class NotebookSolutionCompanion():
       client = self.client
       result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
       if self.print_html:
-          displayHTML(f"""Created <a href="" target="_blank">{result["name"]}</a> dashboard""")
+          displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}" target="_blank">{result["name"]}</a> dashboard""")
       else:
-          print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}-{result['slug']}""")
+          print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}""")
     except:
       pass
     
