@@ -182,8 +182,9 @@ class NotebookSolutionCompanion():
       client = self.client
       result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
       displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}" target="_blank">{result["name"]}</a> dashboard""")
+      return result['id']
     except:
-      pass
+      return 'Cannot import dashboard; please enable the dashboard import feature first'
     
   def submit_run(self, task_json):
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
