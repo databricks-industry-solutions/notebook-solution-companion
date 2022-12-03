@@ -259,9 +259,9 @@ class NotebookSolutionCompanion():
     # If we found the dashboard record in our table, and the dashboard was successfully created, then display the dashboard link and return id
     if id and id != error_string:
       if self.print_html:
-            displayHTML(f"""Found <a href="/sql/dashboards/{id}" target="_blank">dashboard</a> """)
+            displayHTML(f"""Found <a href="/sql/dashboards/{id}" target="_blank">DBSQL dashboard</a> created from {input_path} of this accelerator""")
       else:
-            print(f"""Created dashboard at: {self.workspace_url}/sql/dashboards/{id}""")
+            print(f"""Found dashboard for this accelerator at: {self.workspace_url}/sql/dashboards/{id}""")
       return id
     else:
       # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
