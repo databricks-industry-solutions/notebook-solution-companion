@@ -252,8 +252,8 @@ class NotebookSolutionCompanion():
     if not dbsql_config_table_exists:
       id = None # dbsql dashboard id
     else:
-      dbsql_id_pdf = spark.table(dbsql_config_table).filter(f"path = '{input_path}'").toPandas()
-      assert len(dbsql_id_pdf) <= 1, f"Two or more dashboards created from the same in-repo-path {input_path} exist in the {dbsql_config_table} table; please make sure the file name of solution accelerator dashboards are unique amongst accelerators"
+      dbsql_id_pdf = spark.table(dbsql_config_table).filter(f"path = '{input_path}' and solacc = '{self.solution_code_name}'").toPandas()
+      assert len(dbsql_id_pdf) <= 1, f"Two or more dashboards created from the same in-repo-path {input_path} exist in the {dbsql_config_table} table for the same accelerator {self.solution_code_name}; this is unexpected; please remove the duplicative record(s) in {dbsql_config_table} and try again"
       id = dbsql_id_pdf['id'][0] if len(dbsql_id_pdf) > 0 else None
       
     # If we found the dashboard record in our table, and the dashboard was successfully created, then display the dashboard link and return id
@@ -264,7 +264,7 @@ class NotebookSolutionCompanion():
             print(f"""Created dashboard at: {self.workspace_url}/sql/dashboards/{id}""")
       return id
     else:
-      # If we don't see the dashboard record in our table, create the dashboard first and log it to the dbsql table
+      # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
       # TODO: Remove try except once the API is in public preview
       try:
         # create dashboard
@@ -272,6 +272,7 @@ class NotebookSolutionCompanion():
           input_json = json.load(f)
         client = self.client
         result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+        id = result['id']
         
         # create record in dbsql table to avoid recreating the dashboard over and over
         spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solution_code_name}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
@@ -280,7 +281,9 @@ class NotebookSolutionCompanion():
         if self.print_html:
             displayHTML(f"""Created <a href="/sql/dashboards/{id}" target="_blank">{result['name']} dashboard</a> """)
         else:
-            print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}-{result['slug']}""")
+            print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{id}-{result['slug']}""")
+        
+        return id
       
       except:
         pass
