@@ -243,19 +243,50 @@ class NotebookSolutionCompanion():
     pipeline_name = self.pipeline_params["name"] 
     return self.create_or_update_pipeline_by_name(dlt_config_table, pipeline_name, self.pipeline_params, spark) 
     
-  def deploy_dbsql(self, input_path):
-    # TODO: Remove try except once the API is in public preview
-    try:
-      with open(input_path) as f:
-        input_json = json.load(f)
-      client = self.client
-      result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+  def deploy_dbsql(self, input_path, dbsql_config_table, spark):
+    error_string = "Cannot import dashboard; please enable dashboard import feature first"
+    db, tb =  dbsql_config_table.split(".")
+    dbsql_config_table_exists = tb in [t.name for t in spark.catalog.listTables(db)]
+    
+    # Try retrieve dashboard id if exists
+    if not dbsql_config_table_exists:
+      id = None # dbsql dashboard id
+    else:
+      dbsql_id_pdf = spark.table(dbsql_config_table).filter(f"path = '{input_path}' and solacc = '{self.solution_code_name}'").toPandas()
+      assert len(dbsql_id_pdf) <= 1, f"Two or more dashboards created from the same in-repo-path {input_path} exist in the {dbsql_config_table} table for the same accelerator {self.solution_code_name}; this is unexpected; please remove the duplicative record(s) in {dbsql_config_table} and try again"
+      id = dbsql_id_pdf['id'][0] if len(dbsql_id_pdf) > 0 else None
+      
+    # If we found the dashboard record in our table, and the dashboard was successfully created, then display the dashboard link and return id
+    if id and id != error_string:
       if self.print_html:
-          displayHTML(f"""Created <a href="/sql/dashboards/{result['id']}" target="_blank">{result["name"]}</a> dashboard""")
+            displayHTML(f"""Found <a href="/sql/dashboards/{id}" target="_blank">DBSQL dashboard</a> created from {input_path} of this accelerator""")
       else:
-          print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{result['id']}""")
-    except:
-      pass
+            print(f"""Found dashboard for this accelerator at: {self.workspace_url}/sql/dashboards/{id}""")
+      return id
+    else:
+      # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
+      # TODO: Remove try except once the API is in public preview
+      try:
+        # create dashboard
+        with open(input_path) as f:
+          input_json = json.load(f)
+        client = self.client
+        result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+        id = result['id']
+        
+        # create record in dbsql table to avoid recreating the dashboard over and over
+        spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solution_code_name}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
+        
+        # display result
+        if self.print_html:
+            displayHTML(f"""Created <a href="/sql/dashboards/{id}" target="_blank">{result['name']} dashboard</a> """)
+        else:
+            print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{id}-{result['slug']}""")
+        
+        return id
+      
+      except:
+        pass
     
   def submit_run(self, task_json):
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
