@@ -46,7 +46,7 @@ class NotebookSolutionCompanion():
       if self.print_html:
           displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
       else:
-          print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
+          print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
     else:
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
@@ -54,7 +54,7 @@ class NotebookSolutionCompanion():
       if self.print_html:
           displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
       else:
-          print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}""")
+          print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
     return job_id
   
