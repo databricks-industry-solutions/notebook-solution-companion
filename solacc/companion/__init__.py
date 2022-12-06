@@ -40,11 +40,11 @@ class NotebookSolutionCompanion():
                      "new_settings": params}
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
       assert json_response == {}, "Job reset returned non-200 status"
-      displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+      displayHTML(f"""Reset the <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job to original definition""")
     else:
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
-      displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+      displayHTML(f"""Created <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job""")
     return job_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
