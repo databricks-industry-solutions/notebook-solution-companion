@@ -44,7 +44,7 @@ class NotebookSolutionCompanion():
       assert json_response == {}, "Job reset returned non-200 status"
       
       if self.print_html:
-          displayHTML(f"""Reset the <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job to original definition""")
+          displayHTML(f"""Reset the <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job to original definition""")
       else:
           print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
@@ -52,7 +52,7 @@ class NotebookSolutionCompanion():
       json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
       job_id = json_response["job_id"]
       if self.print_html:
-          displayHTML(f"""Created <a href="/#job/{job_id}" target="_blank">{params["name"]}</a> job""")
+          displayHTML(f"""Created <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job""")
       else:
           print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
