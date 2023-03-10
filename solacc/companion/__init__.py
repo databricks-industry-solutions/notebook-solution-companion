@@ -255,7 +255,10 @@ class NotebookSolutionCompanion():
       return wsfs_status["object_id"]
     while wsfs_status["object_type"] != "DIRECTORY":
       trial += 1
-      client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": f"{target_wsfs_directory}_{trial}"})
+      try:
+        client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": f"{target_wsfs_directory}_{trial}"})
+      except:
+        pass
       wsfs_status = client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/get-status", {"path": f"{target_wsfs_directory}_{trial}"})
     return wsfs_status["object_id"]
 
