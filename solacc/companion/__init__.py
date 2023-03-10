@@ -246,6 +246,7 @@ class NotebookSolutionCompanion():
 
   def get_wsfs_folder_id(self, target_wsfs_directory): # Try creating a wsfs folder, return object id 
     trial = 1
+    client = self.client
     try: 
       client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": target_wsfs_directory})
     except:
