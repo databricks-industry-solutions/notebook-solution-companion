@@ -251,7 +251,7 @@ class NotebookSolutionCompanion():
       client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": target_wsfs_directory})
     except:
       pass
-    wsfs_status = client.execute_get_json(f"{client.endpoint}/api/2.0/workspace/get-status", {"path": target_wsfs_directory})
+    wsfs_status = client.execute_get_json(f"{client.endpoint}/api/2.0/workspace/get-status?path={target_wsfs_directory}")
     if wsfs_status["object_type"] == "DIRECTORY":
       return wsfs_status["object_id"]
     while wsfs_status["object_type"] != "DIRECTORY":
@@ -260,7 +260,7 @@ class NotebookSolutionCompanion():
         client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": f"{target_wsfs_directory}_{trial}"})
       except:
         pass
-      wsfs_status = client.execute_get_json(f"{client.endpoint}/api/2.0/workspace/get-status", {"path": f"{target_wsfs_directory}_{trial}"})
+      wsfs_status = client.execute_get_json(f"{client.endpoint}/api/2.0/workspace/get-status?path={target_wsfs_directory}_{trial}")
     return wsfs_status["object_id"]
 
 
@@ -333,3 +333,7 @@ class NotebookSolutionCompanion():
     print("-" * 80)
     print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
     assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}"
+
+# COMMAND ----------
+
+
