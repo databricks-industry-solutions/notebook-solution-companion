@@ -244,7 +244,7 @@ class NotebookSolutionCompanion():
     pipeline_name = self.pipeline_params["name"] 
     return self.create_or_update_pipeline_by_name(dlt_config_table, pipeline_name, self.pipeline_params, spark) 
 
-  def get_wsfs_folder_id(target_wsfs_directory): # Try creating a wsfs folder, return object id 
+  def get_wsfs_folder_id(self, target_wsfs_directory): # Try creating a wsfs folder, return object id 
     trial = 1
     try: 
       client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": target_wsfs_directory})
