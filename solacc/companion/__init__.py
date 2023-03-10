@@ -332,7 +332,3 @@ class NotebookSolutionCompanion():
     print("-" * 80)
     print(f"#job/{self.job_id}/run/{self.run_id} is {self.life_cycle_state} - {self.test_result_state}")
     assert self.test_result_state == "SUCCESS", f"Job Run failed: please investigate at: {self.workspace_url}#job/{self.job_id}/run/{self.run_id}"
-
-# COMMAND ----------
-
-D
