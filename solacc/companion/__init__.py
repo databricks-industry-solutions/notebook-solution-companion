@@ -1,7 +1,7 @@
 # Databricks notebook source
 from dbacademy.dbrest import DBAcademyRestClient
 from dbacademy import dbgems 
-from dbacademy.dbgems import get_cloud, get_notebook_dir, get_workspace_url
+from dbacademy.dbgems import get_cloud, get_notebook_dir, get_workspace_url, get_username
 from dbruntime.display import displayHTML
 import hashlib
 import json
@@ -23,6 +23,7 @@ class NotebookSolutionCompanion():
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     self.workspace_url = get_workspace_url()
     self.print_html = int(dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
+    self.username = get_username()
     
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
@@ -242,11 +243,29 @@ class NotebookSolutionCompanion():
     self.pipeline_params = self.customize_pipeline_json(self.pipeline_input_json, self.solacc_path)
     pipeline_name = self.pipeline_params["name"] 
     return self.create_or_update_pipeline_by_name(dlt_config_table, pipeline_name, self.pipeline_params, spark) 
-    
+
+  def get_wsfs_folder_id(target_wsfs_directory): # Try creating a wsfs folder, return object id 
+    trial = 1
+    try: 
+      client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": target_wsfs_directory})
+    except:
+      pass
+    wsfs_status = client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/get-status", {"path": target_wsfs_directory})
+    if wsfs_status["object_type"] == "DIRECTORY":
+      return wsfs_status["object_id"]
+    while wsfs_status["object_type"] != "DIRECTORY":
+      trial += 1
+      client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/mkdirs", {"path": f"{target_wsfs_directory}_{trial}"})
+      wsfs_status = client.execute_post_json(f"{client.endpoint}/api/2.0/workspace/get-status", {"path": f"{target_wsfs_directory}_{trial}"})
+    return wsfs_status["object_id"]
+
+
   def deploy_dbsql(self, input_path, dbsql_config_table, spark):
     error_string = "Cannot import dashboard; please enable dashboard import feature first"
     db, tb =  dbsql_config_table.split(".")
     dbsql_config_table_exists = tb in [t.name for t in spark.catalog.listTables(db)]
+    dbsql_file_name = input_path.split("/")[-1].split(".")[0]
+    target_wsfs_directory = f"""/Users/{self.username}/{dbsql_file_name}"""
     
     # Try retrieve dashboard id if exists
     if not dbsql_config_table_exists:
@@ -267,11 +286,14 @@ class NotebookSolutionCompanion():
       # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
       # TODO: Remove try except once the API is in public preview
       try:
+        # get the folder id for the folder we will save queries to
+        folder_object_id = self.get_wsfs_folder_id(target_wsfs_directory)
+
         # create dashboard
         with open(input_path) as f:
           input_json = json.load(f)
         client = self.client
-        result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {"import_file_contents": input_json})
+        result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {'parent': f'folders/{folder_object_id}', "import_file_contents": input_json})
         id = result['id']
         
         # create record in dbsql table to avoid recreating the dashboard over and over
@@ -310,4 +332,4 @@ class NotebookSolutionCompanion():
 
 # COMMAND ----------
 
-
+D
