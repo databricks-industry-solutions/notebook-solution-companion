@@ -289,30 +289,30 @@ class NotebookSolutionCompanion():
     else:
       # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
       # TODO: Remove try except once the API is in public preview
-      # try:
+      try:
         # get the folder id for the folder we will save queries to
-      folder_object_id = self.get_wsfs_folder_id(target_wsfs_directory)
+        folder_object_id = self.get_wsfs_folder_id(target_wsfs_directory)
 
-      # create dashboard
-      with open(input_path) as f:
-        input_json = json.load(f)
-      client = self.client
-      result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {'parent': f'folders/{folder_object_id}', "import_file_contents": input_json})
-      id = result['id']
+        # create dashboard
+        with open(input_path) as f:
+          input_json = json.load(f)
+        client = self.client
+        result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {'parent': f'folders/{folder_object_id}', "import_file_contents": input_json})
+        id = result['id']
+        
+        # create record in dbsql table to avoid recreating the dashboard over and over
+        spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solution_code_name}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
+        
+        # display result
+        if self.print_html:
+            displayHTML(f"""Created <a href="/sql/dashboards/{id}" target="_blank">{result['name']} dashboard</a> """)
+        else:
+            print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{id}-{result['slug']}""")
+        
+        return id
       
-      # create record in dbsql table to avoid recreating the dashboard over and over
-      spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solution_code_name}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
-      
-      # display result
-      if self.print_html:
-          displayHTML(f"""Created <a href="/sql/dashboards/{id}" target="_blank">{result['name']} dashboard</a> """)
-      else:
-          print(f"""Created {result['name']} dashboard at: {self.workspace_url}/sql/dashboards/{id}-{result['slug']}""")
-      
-      return id
-      
-      # except:
-      #   pass
+      except:
+        pass
     
   def submit_run(self, task_json):
     json_response = self.client.execute_post_json(f"/2.1/jobs/runs/submit", task_json)
