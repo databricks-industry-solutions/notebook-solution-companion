@@ -71,7 +71,7 @@ class NotebookSolutionCompanion():
     return pipe_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
-  def create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
+  def create_or_update_pipeline_by_name(self, pipeline_name, dlt_definition_dict, spark, dlt_config_table = ""): # dlt_config_table is no longer used and will be deprecated when existing RUNME notebooks are updated
     """Look up a companion pipeline by name and edit with the given param and return pipeline id; create a new pipeline if a pipeline with that name does not exist"""
     pipeline_id = self.get_pipeline_id_by_name(pipeline_name)
       
@@ -83,7 +83,7 @@ class NotebookSolutionCompanion():
         pipeline_id = response["pipeline_id"]
         # log pipeline id to the cicd dlt table: we use this delta table to store pipeline id information because looking up pipeline id via API can sometimes bring back a lot of data into memory and cause OOM error; this table is user-specific
         # Reusing the DLT pipeline allows for DLT run history to accumulate over time rather than to be wiped out after each deployment. DLT has some UI components that only show up after the pipeline is executed at least twice. 
-        spark.createDataFrame([{"solacc": pipeline_name, "pipeline_id": pipeline_id}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dlt_config_table)
+        # spark.createDataFrame([{"solacc": pipeline_name, "pipeline_id": pipeline_id}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dlt_config_table)
         
     return pipeline_id
   
