@@ -32,12 +32,16 @@ class NotebookSolutionCompanion():
     params["autotermination_minutes"] = 15 # adding a default autotermination as best practice
     return params
 
+  def get_job_id_by_name(self, name):
+    jobs = self.client.jobs().list()
+    jobs_matched = list(filter(lambda job: job["settings"]["name"] == name, jobs)) 
+    assert len(jobs_matched) <= 1, f"""Two jobs with the same name {name} exist; please manually inspect them to make sure solacc job names are unique"""
+    job_id = jobs_matched[0]["job_id"] if len(jobs_matched)  == 1 else None
+    return job_id
+
   def create_or_update_job_by_name(self, params):
     """Look up the companion job by name and resets it with the given param and return job id; create a new job if a job with that name does not exist"""
-    jobs = self.client.jobs().list()
-    jobs_matched = list(filter(lambda job: job["settings"]["name"] == params["name"], jobs)) 
-    assert len(jobs_matched) <= 1, f"""Two jobs with the same name {params["name"]} exist; please manually inspect them to make sure solacc job names are unique"""
-    job_id = jobs_matched[0]["job_id"] if len(jobs_matched)  == 1 else None
+    job_id = self.get_job_id_by_name(params["name"])
     if job_id: 
       reset_params = {"job_id": job_id,
                      "new_settings": params}
@@ -58,19 +62,18 @@ class NotebookSolutionCompanion():
           print(f"""Created {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
     return job_id
+
+  def get_pipeline_id_by_name(self, name):
+    pipes = self.client.execute_get_json(f"""{self.client.endpoint}/api/2.0/pipelines?filter=name%20LIKE%20%27%25{name}%25%27""")["statuses"]
+    pipes_matched = list(filter(lambda p: p["name"] == name, pipes)) 
+    assert len(pipes_matched) <= 1, f"""Two pipelines with the same name {name} exist; please manually inspect them to make sure solacc pipeline names are unique"""
+    pipe_id = pipes_matched[0]["pipeline_id"] if len(pipes_matched)  == 1 else None
+    return pipe_id
   
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
   def create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
     """Look up a companion pipeline by name and edit with the given param and return pipeline id; create a new pipeline if a pipeline with that name does not exist"""
-    db, tb =  dlt_config_table.split(".")
-    dlt_config_table_exists = tb in [t.name for t in spark.catalog.listTables(db)]
-    
-    if not dlt_config_table_exists:
-      pipeline_id = None
-    else:
-      dlt_id_pdf = spark.table(dlt_config_table).filter(f"solacc = '{pipeline_name}'").toPandas()
-      assert len(dlt_id_pdf) <= 1, f"two pipelines with the same name {pipeline_name} exist in the {dlt_config_table} table; please manually inspect the table to make sure pipelines names are unique"
-      pipeline_id = dlt_id_pdf['pipeline_id'][0] if len(dlt_id_pdf) > 0 else None
+    pipeline_id = self.get_pipeline_id_by_name(pipeline_name)
       
     if pipeline_id:
         dlt_definition_dict['id'] = pipeline_id
