@@ -64,7 +64,13 @@ class NotebookSolutionCompanion():
     return job_id
 
   def get_pipeline_id_by_name(self, name):
-    pipes = self.client.execute_get_json(f"""{self.client.endpoint}/api/2.0/pipelines?filter=name%20LIKE%20%27%25{name}%25%27""")["statuses"]
+    # first filter for like match
+    pipes_response = self.client.execute_get_json(f"""{self.client.endpoint}/api/2.0/pipelines?filter=name%20LIKE%20%27%25{name}%25%27""") # returns {} if nothing is found
+    if pipes_response:
+      pipes = pipes_response["statuses"]
+    else: # if no match is found
+      return None
+    # next filter for exact match
     pipes_matched = list(filter(lambda p: p["name"] == name, pipes)) 
     assert len(pipes_matched) <= 1, f"""Two pipelines with the same name {name} exist; please manually inspect them to make sure solacc pipeline names are unique"""
     pipe_id = pipes_matched[0]["pipeline_id"] if len(pipes_matched)  == 1 else None
