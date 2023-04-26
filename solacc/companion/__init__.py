@@ -262,7 +262,7 @@ class NotebookSolutionCompanion():
       return False
 
 
-  def deploy_dbsql(self, input_path, dbsql_config_table, spark):
+  def deploy_dbsql(self, input_path, dbsql_config_table, spark, reuse=True):
     error_string = "Cannot import dashboard; please enable dashboard import feature first"
     db, tb =  dbsql_config_table.split(".")
     dbsql_config_table_exists = tb in [t.name for t in spark.catalog.listTables(db)]
@@ -270,7 +270,7 @@ class NotebookSolutionCompanion():
     target_wsfs_directory = f"""/Users/{self.username}/{dbsql_file_name}"""
     
     # Try retrieve dashboard id if exists
-    if not dbsql_config_table_exists:
+    if not dbsql_config_table_exists or not reuse:
       id = None # dbsql dashboard id
     else:
       dbsql_id_pdf = spark.table(dbsql_config_table).filter(f"path = '{input_path}' and solacc = '{self.solacc_path}'").toPandas()
@@ -286,7 +286,7 @@ class NotebookSolutionCompanion():
             print(f"""Found dashboard for this accelerator at: {self.workspace_url}/sql/dashboards/{id}""")
       return id
     else:
-      # If the dashboard does not exist in record or does not exist in the workspace, create the dashboard first and log it to the dbsql table
+      # If the dashboard does not exist in record, or does not exist in the workspace, or we do not want to reuse it, create the dashboard first and log it to the dbsql table
       # TODO: Remove try except once the API is in public preview
       try:
         # get the folder id for the folder we will save queries to
@@ -299,7 +299,7 @@ class NotebookSolutionCompanion():
         result = client.execute_post_json(f"{client.endpoint}/api/2.0/preview/sql/dashboards/import", {'parent': f'folders/{folder_object_id}', "import_file_contents": input_json})
         id = result['id']
         
-        # create record in dbsql table to avoid recreating the dashboard over and over
+        # create record in dbsql table to enable reuse
         if not dbsql_config_table_exists:
           # initialize table
           spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solacc_path}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
