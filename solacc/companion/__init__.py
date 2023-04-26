@@ -270,7 +270,7 @@ class NotebookSolutionCompanion():
     
     # Try retrieve dashboard id if exists
     if not reuse:
-      print(f"Not reusing exisitng dashboards; a new dashboard will be created and the {dbsql_config_table} will be updated with the new dashboard id")
+      print(f"Not reusing exisitng dashboards; a new dashboard will be created and the {dbsql_config_table} will include the new dashboard id")
       id = None 
     elif not dbsql_config_table_exists:
       print(f"{dbsql_config_table} does not exist")
@@ -279,7 +279,6 @@ class NotebookSolutionCompanion():
       dbsql_id_pdf = spark.table(dbsql_config_table).filter(f"path = '{input_path}' and solacc = '{self.solacc_path}'").toPandas()
       assert len(dbsql_id_pdf) <= 1, f"Two or more dashboards created from the same in-repo-path {input_path} exist in the {dbsql_config_table} table for the same accelerator {self.solacc_path}; this is unexpected; please remove the duplicative record(s) in {dbsql_config_table} and try again"
       id = dbsql_id_pdf['id'][0] if len(dbsql_id_pdf) > 0 else None
-      print(f"Found dashboard {id}; Checking that it exists {self.check_if_dashboard_exists(id)}")
       
 
     # If we found the dashboard record in our table, and the dashboard was successfully created, then display the dashboard link and return id
