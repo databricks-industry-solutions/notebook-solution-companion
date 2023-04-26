@@ -254,6 +254,13 @@ class NotebookSolutionCompanion():
       wsfs_status = client.execute_get_json(f"{client.endpoint}/api/2.0/workspace/get-status?path={target_wsfs_directory}_{trial}")
     return wsfs_status["object_id"]
 
+  def check_if_dashboard_exists(self, id):
+    try:
+      nsc.client.execute_get_json(f"{nsc.client.endpoint}/api/2.0/preview/sql/permissions/dashboards/{id}")
+      return True
+    except Exception:
+      return False
+
 
   def deploy_dbsql(self, input_path, dbsql_config_table, spark):
     error_string = "Cannot import dashboard; please enable dashboard import feature first"
@@ -270,15 +277,16 @@ class NotebookSolutionCompanion():
       assert len(dbsql_id_pdf) <= 1, f"Two or more dashboards created from the same in-repo-path {input_path} exist in the {dbsql_config_table} table for the same accelerator {self.solacc_path}; this is unexpected; please remove the duplicative record(s) in {dbsql_config_table} and try again"
       id = dbsql_id_pdf['id'][0] if len(dbsql_id_pdf) > 0 else None
       
+
     # If we found the dashboard record in our table, and the dashboard was successfully created, then display the dashboard link and return id
-    if id and id != error_string:
+    if id and id != error_string and self.check_if_dashboard_exists(id):
       if self.print_html:
             displayHTML(f"""Found <a href="/sql/dashboards/{id}" target="_blank">DBSQL dashboard</a> created from {input_path} of this accelerator""")
       else:
             print(f"""Found dashboard for this accelerator at: {self.workspace_url}/sql/dashboards/{id}""")
       return id
     else:
-      # If the dashboard does not exist in record, create the dashboard first and log it to the dbsql table
+      # If the dashboard does not exist in record or does not exist in the workspace, create the dashboard first and log it to the dbsql table
       # TODO: Remove try except once the API is in public preview
       try:
         # get the folder id for the folder we will save queries to
@@ -292,7 +300,17 @@ class NotebookSolutionCompanion():
         id = result['id']
         
         # create record in dbsql table to avoid recreating the dashboard over and over
-        spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solacc_path}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
+        if not dbsql_config_table_exists:
+          # initialize table
+          spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solacc_path}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dbsql_config_table)
+        else:
+          # upsert table record
+          spark.createDataFrame([{"path": input_path, "id": id, "solacc": self.solacc_path}]).createOrReplaceTempView("new_record")
+          spark.sql(f"""MERGE INTO {dbsql_config_table} t USING new_record n
+          ON t.input_path = n.input_path and t.solacc = n.solacc
+          WHEN MATCHED THEN UPDATE SET t.id = n.id
+          WHEN NOT MATCHED THEN INSERT *
+          """)
         
         # display result
         if self.print_html:
