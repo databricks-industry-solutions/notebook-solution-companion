@@ -256,11 +256,10 @@ class NotebookSolutionCompanion():
 
   def check_if_dashboard_exists(self, id):
     try:
-      nsc.client.execute_get_json(f"{nsc.client.endpoint}/api/2.0/preview/sql/permissions/dashboards/{id}")
+      self.client.execute_get_json(f"{self.client.endpoint}/api/2.0/preview/sql/permissions/dashboards/{id}")
       return True
     except Exception:
       return False
-
 
   def deploy_dbsql(self, input_path, dbsql_config_table, spark, reuse=True):
     error_string = "Cannot import dashboard; please enable dashboard import feature first"
