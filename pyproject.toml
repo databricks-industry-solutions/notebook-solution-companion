@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solacc"
+description = "Databricks Solution Accelerator notebook companion"
+authors = [
+  {name = "Nicole Lu", email = "nicole@databricks.com"},
+]
+
+license = {text = "Databricks License"}
+packages = ["solacc"]
+dependencies = [
+    "databricks-sdk",
+    "hashlib",
+    "json",
+    "re",
+    "time",
+    "copy",
+    "dbacademy @ git+https://github.com/databricks-academy/dbacademy/archive/refs/tags/v1.0.13.zip",
+]

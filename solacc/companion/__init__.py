@@ -1,8 +1,8 @@
 # Databricks notebook source
 from dbacademy.dbrest import DBAcademyRestClient
 from dbacademy import dbgems 
-from dbacademy.dbgems import get_cloud, get_notebook_dir, get_workspace_url, get_username
 from dbruntime.display import displayHTML
+from databricks.sdk import WorkspaceClient
 import hashlib
 import json
 import re
@@ -15,16 +15,50 @@ class NotebookSolutionCompanion():
   """
   
   def __init__(self):
-    self.solution_code_name = get_notebook_dir().split('/')[-1]
-    self.cloud = get_cloud()
-    self.solacc_path = get_notebook_dir()
+    self.solution_code_name = self.get_notebook_dir().split('/')[-1]
+    self.cloud = self.get_cloud(w)
+    self.solacc_path = self.get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
-    self.workspace_url = get_workspace_url()
+    self.workspace_url = self.get_workspace_url()
     self.print_html = int(dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
-    self.username = get_username()
-    
+    self.username = self.get_username()
+    self.w = get_workspace_client()
+  
+  @staticmethod
+  def get_cloud(w):
+    if w.config.is_azure:
+      return "MSA"
+    elif w.config.is_aws:
+      return "AWS"
+    elif w.config.is_gcp:
+      return "GCP"
+    else: 
+      raise NotImplementedError
+
+  @staticmethod
+  def get_workspace_client():
+    ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
+    DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
+    DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
+    return WorkspaceClient(host=DATABRICKS_URL, token=DATABRICKS_TOKEN)
+
+
+
+  @staticmethod
+  def get_username():
+    return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().getOrElse(None)
+
+  @staticmethod
+  def get_workspace_url()
+    return sc.getConf().get('spark.databricks.workspaceUrl')
+
+  @staticmethod
+  def get_notebook_dir() -> str:
+    notebook_path = dbutils.entry_point.getDbutils().notebook().getContext().notebookPath().getOrElse(None)
+    return "/".join(get_notebook_path().split("/")[:-1])
+  
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
     params = job_cluster_params["new_cluster"]
@@ -112,7 +146,7 @@ class NotebookSolutionCompanion():
     
   @staticmethod
   def customize_cluster_json(input_json):
-    cloud = get_cloud()
+    cloud = self.get_cloud()
     node_type_id_dict = copy.deepcopy(input_json["node_type_id"]) 
     input_json["node_type_id"] = node_type_id_dict[cloud]
     if cloud == "AWS": 
