@@ -1,14 +1,11 @@
 # Databricks notebook source
-# MAGIC %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 databricks-sdk --quiet --disable-pip-version-check
-
-# COMMAND ----------
-
 # %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 databricks-sdk --quiet --disable-pip-version-check
 
 from dbacademy.dbrest import DBAcademyRestClient
 from dbacademy import dbgems 
 from dbruntime.display import displayHTML
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.runtime.stub import dbutils
 import hashlib
 import json
 import re
