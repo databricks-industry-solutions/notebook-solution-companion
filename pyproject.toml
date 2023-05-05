@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "solacc"
+version = "0.1.0"
 description = "Databricks Solution Accelerator notebook companion"
 authors = [
   {name = "Nicole Lu", email = "nicole@databricks.com"},
 ]
 
 license = {text = "Databricks License"}
-packages = ["solacc"]
 dependencies = [
     "databricks-sdk",
     "hashlib",
