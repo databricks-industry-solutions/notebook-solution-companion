@@ -13,9 +13,4 @@ authors = [
 license = {text = "Databricks License"}
 dependencies = [
     "databricks-sdk",
-    "hashlib",
-    "json",
-    "re",
-    "time",
-    "copy",
 ]
