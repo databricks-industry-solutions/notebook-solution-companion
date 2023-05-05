@@ -1,4 +1,10 @@
 # Databricks notebook source
+# MAGIC %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 databricks-sdk --quiet --disable-pip-version-check
+
+# COMMAND ----------
+
+# %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 databricks-sdk --quiet --disable-pip-version-check
+
 from dbacademy.dbrest import DBAcademyRestClient
 from dbacademy import dbgems 
 from dbruntime.display import displayHTML
@@ -24,10 +30,10 @@ class NotebookSolutionCompanion():
     self.workspace_url = self.get_workspace_url()
     self.print_html = int(dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
     self.username = self.get_username()
-    self.w = get_workspace_client()
+    self.w = self.get_workspace_client()
   
   @staticmethod
-  def get_cloud(w):
+  def get_cloud(w) -> str:
     if w.config.is_azure:
       return "MSA"
     elif w.config.is_aws:
@@ -38,7 +44,7 @@ class NotebookSolutionCompanion():
       raise NotImplementedError
 
   @staticmethod
-  def get_workspace_client():
+  def get_workspace_client() -> WorkspaceClient:
     ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
     DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
     DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
@@ -47,17 +53,17 @@ class NotebookSolutionCompanion():
 
 
   @staticmethod
-  def get_username():
+  def get_username() -> str:
     return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().getOrElse(None)
 
   @staticmethod
-  def get_workspace_url()
+  def get_workspace_url() -> str:
     return sc.getConf().get('spark.databricks.workspaceUrl')
 
   @staticmethod
   def get_notebook_dir() -> str:
     notebook_path = dbutils.entry_point.getDbutils().notebook().getContext().notebookPath().getOrElse(None)
-    return "/".join(get_notebook_path().split("/")[:-1])
+    return "/".join(notebook_path.split("/")[:-1])
   
   @staticmethod
   def convert_job_cluster_to_cluster(job_cluster_params):
