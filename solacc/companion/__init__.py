@@ -12,7 +12,7 @@ import re
 import time
 import copy
 
-class NotebookSolutionCompanion():
+class NotebookSolutionCompanion(spark=spark):
   """
   A class to provision companion assets for a notebook-based solution, includingn job, cluster(s), DLT pipeline(s) and DBSQL dashboard(s)
   """
