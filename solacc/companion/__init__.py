@@ -5,7 +5,7 @@ from dbacademy.dbrest import DBAcademyRestClient
 from dbacademy import dbgems 
 from dbruntime.display import displayHTML
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.runtime.stub import dbutils
+from databricks.sdk.runtime import *
 import hashlib
 import json
 import re
