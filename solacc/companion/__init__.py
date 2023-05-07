@@ -2,17 +2,22 @@
 # %pip install git+https://github.com/databricks-academy/dbacademy@v1.0.13 databricks-sdk --quiet --disable-pip-version-check
 
 from dbacademy.dbrest import DBAcademyRestClient
-from dbacademy import dbgems 
 from dbruntime.display import displayHTML
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.runtime import *
 import hashlib
 import json
 import re
 import time
 import copy
+import os
 
-class NotebookSolutionCompanion(spark=spark):
+# ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
+# os.environ['DATABRICKS_API_TOKEN'] = ctx.apiToken().getOrElse(None)
+# os.environ['DATABRICKS_HOST'] = ctx.apiUrl().getOrElse(None)
+
+global spark, sc, dbutils
+
+class NotebookSolutionCompanion():
   """
   A class to provision companion assets for a notebook-based solution, includingn job, cluster(s), DLT pipeline(s) and DBSQL dashboard(s)
   """
@@ -25,7 +30,7 @@ class NotebookSolutionCompanion(spark=spark):
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
     self.workspace_url = self.get_workspace_url()
-    self.print_html = int(dbgems.spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
+    self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
     self.username = self.get_username()
     self.w = self.get_workspace_client()
   
