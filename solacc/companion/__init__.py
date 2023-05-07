@@ -48,8 +48,8 @@ class NotebookSolutionCompanion():
   """
   
   def __init__(self):
+    self.w = self.get_workspace_client()
     self.solution_code_name = self.get_notebook_dir().split('/')[-1]
-    self.cloud = self.get_cloud(self.w)
     self.solacc_path = self.get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
@@ -57,7 +57,7 @@ class NotebookSolutionCompanion():
     self.workspace_url = self.get_workspace_url()
     self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
     self.username = self.get_username()
-    self.w = self.get_workspace_client()
+    self.cloud = self.get_cloud(self.w)
   
   @staticmethod
   def get_cloud(w) -> str:
@@ -76,8 +76,6 @@ class NotebookSolutionCompanion():
     DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
     DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
     return WorkspaceClient(host=DATABRICKS_URL, token=DATABRICKS_TOKEN)
-
-
 
   @staticmethod
   def get_username() -> str:
