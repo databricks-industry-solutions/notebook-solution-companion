@@ -49,7 +49,7 @@ class NotebookSolutionCompanion():
   
   def __init__(self):
     self.solution_code_name = self.get_notebook_dir().split('/')[-1]
-    self.cloud = self.get_cloud(w)
+    self.cloud = self.get_cloud(self.w)
     self.solacc_path = self.get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
