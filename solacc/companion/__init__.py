@@ -15,7 +15,30 @@ import os
 # os.environ['DATABRICKS_API_TOKEN'] = ctx.apiToken().getOrElse(None)
 # os.environ['DATABRICKS_HOST'] = ctx.apiUrl().getOrElse(None)
 
-global spark, sc, dbutils
+def init_locals():
+
+    # noinspection PyGlobalUndefined
+    global spark, sc, dbutils
+
+    try: spark
+    except NameError:spark = SparkSession.builder.getOrCreate()
+
+    try: sc
+    except NameError: sc = spark.sparkContext
+
+    try: dbutils
+    except NameError:
+        if spark.conf.get("spark.databricks.service.client.enabled") == "true":
+            from pyspark.dbutils import DBUtils
+            dbutils = DBUtils(spark)
+        else:
+            import IPython
+            dbutils = IPython.get_ipython().user_ns["dbutils"]
+
+    return sc, spark, dbutils
+
+
+sc, spark, dbutils = init_locals()
 
 class NotebookSolutionCompanion():
   """
@@ -60,7 +83,7 @@ class NotebookSolutionCompanion():
 
   @staticmethod
   def get_workspace_url() -> str:
-    return sc.getConf().get('spark.databricks.workspaceUrl')
+    return spark.conf.get('spark.databricks.workspaceUrl')
 
   @staticmethod
   def get_notebook_dir() -> str:
