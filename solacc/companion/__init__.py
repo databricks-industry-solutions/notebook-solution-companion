@@ -133,7 +133,9 @@ class NotebookSolutionCompanion():
     
   @staticmethod
   def customize_job_json(input_json, job_name, solacc_path, cloud):
-    input_json["name"] = job_name
+    # if input_json contains a name, keep it; otherwise use the standard job_name
+    if "name" not in input_json:
+      input_json["name"] = job_name
 
     for i, _ in enumerate(input_json["tasks"]):
       if "notebook_task" in input_json["tasks"][i]:
