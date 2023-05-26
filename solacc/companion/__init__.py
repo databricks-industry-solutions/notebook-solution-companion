@@ -12,6 +12,9 @@ import copy
 import os
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
+from databricks.sdk.service.jobs import JobSettings, CreateJob
+from databricks.sdk.service.pipelines import EditPipeline
+from databricks.sdk.service.compute import CreateCluster
 
 # ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
 # os.environ['DATABRICKS_API_TOKEN'] = ctx.apiToken().getOrElse(None)
@@ -71,7 +74,7 @@ class NotebookSolutionCompanion():
       raise NotImplementedError
 
   @staticmethod
-  def get_workspace_client() -> WorkspaceClient:
+  def get_workspace_client() -> WorkspaceClient: 
     ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
     DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
     DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
@@ -99,13 +102,16 @@ class NotebookSolutionCompanion():
 
   def create_or_update_job_by_name(self, params):
     """Look up the companion job by name and resets it with the given param and return job id; create a new job if a job with that name does not exist"""
-    job_found = self.client.jobs().get_by_name(params["name"])
+    # job_found = self.client.jobs().get_by_name(params["name"])
+    job_found = list(self.w.jobs.list(name=params["name"]))
     if job_found: 
-      job_id = job_found["job_id"]
-      reset_params = {"job_id": job_id,
-                     "new_settings": params}
-      json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
-      assert json_response == {}, "Job reset returned non-200 status"
+      job_id = job_found[0].job_id
+      # reset_params = {"job_id": job_id,
+      #                "new_settings": params}
+      reset_job_settings = JobSettings().from_dict(params)
+      # json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/reset", reset_params) # returns {} if status is 200
+      self.w.jobs.reset(job_id, reset_job_settings)
+      # assert json_response == {}, "Job reset returned non-200 status"
       
       if self.print_html:
           displayHTML(f"""Reset the <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job to original definition""")
@@ -113,8 +119,9 @@ class NotebookSolutionCompanion():
           print(f"""Reset the {params["name"]} job at: {self.workspace_url}/#job/{job_id}/tasks""")
           
     else:
-      json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
-      job_id = json_response["job_id"]
+      # json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
+      create_job_request = CreateJob().from_dict(request=params)
+      job_id = self.w.jobs.create(request=create_job_request).job_id
       if self.print_html:
           displayHTML(f"""Created <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job""")
       else:
@@ -125,18 +132,19 @@ class NotebookSolutionCompanion():
   # Note these functions assume that names for solacc jobs/cluster/pipelines are unique, which is guaranteed if solacc jobs/cluster/pipelines are created from this class only
   def create_or_update_pipeline_by_name(self, dlt_config_table, pipeline_name, dlt_definition_dict, spark):
     """Look up a companion pipeline by name and edit with the given param and return pipeline id; create a new pipeline if a pipeline with that name does not exist"""
-    pipeline_found = self.client.pipelines.get_by_name(pipeline_name)
+    # pipeline_found = self.client.pipelines.get_by_name(pipeline_name)
+    pipeline_found = list(self.w.pipelines.list_pipelines(filter=f"name LIKE '{pipeline_name}'"))
       
     if pipeline_found:
-        pipeline_id = pipeline_found["pipeline_id"]
-        dlt_definition_dict['id'] = pipeline_id
-        self.client.execute_put_json(f"{self.client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
+        pipeline_id = pipeline_found[0].pipeline_id
+        dlt_definition_dict['pipeline_id'] = pipeline_id
+        # self.client.execute_put_json(f"{self.client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
+        request = EditPipeline(pipeline_id = pipeline_id).from_dict(dlt_definition_dict)
+        self.w.pipelines.update(pipeline_id=pipeline_id, request=request)
     else:
-        response = self.client.pipelines().create_from_dict(dlt_definition_dict)
-        pipeline_id = response["pipeline_id"]
-        # log pipeline id to the cicd dlt table: we use this delta table to store pipeline id information because looking up pipeline id via API can sometimes bring back a lot of data into memory and cause OOM error; this table is user-specific
-        # Reusing the DLT pipeline allows for DLT run history to accumulate over time rather than to be wiped out after each deployment. DLT has some UI components that only show up after the pipeline is executed at least twice. 
-        # spark.createDataFrame([{"solacc": pipeline_name, "pipeline_id": pipeline_id}]).write.mode("append").option("mergeSchema", "True").saveAsTable(dlt_config_table)
+        # response = self.client.pipelines().create_from_dict(dlt_definition_dict)
+        request = CreatePipeline().from_dict(dlt_definition_dict)
+        pipeline_id = self.w.pipelines.create(request=request).pipeline_id
         
     return pipeline_id
   
