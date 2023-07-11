@@ -51,7 +51,7 @@ class NotebookSolutionCompanion():
   """
   
   def __init__(self):
-    self.w = WorkspaceClient()
+    self.w = self.get_workspace_client()
     self.solution_code_name = self.get_notebook_dir().split('/')[-1]
     self.solacc_path = self.get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
@@ -61,6 +61,13 @@ class NotebookSolutionCompanion():
     self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 # below DBR 11, html print is not supported
     self.username = self.get_username()
     self.cloud = self.get_cloud()
+
+  @staticmethod
+  def get_workspace_client() -> WorkspaceClient: 
+    ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
+    DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
+    DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
+    return WorkspaceClient(host=DATABRICKS_URL, token=DATABRICKS_TOKEN)
   
   def get_cloud(self) -> str:
     if self.w.config.is_azure:
