@@ -51,39 +51,30 @@ class NotebookSolutionCompanion():
   """
   
   def __init__(self):
-    self.w = self.get_workspace_client()
+    self.w = WorkspaceClient()
     self.solution_code_name = self.get_notebook_dir().split('/')[-1]
     self.solacc_path = self.get_notebook_dir()
     hash_code = hashlib.sha256(self.solacc_path.encode()).hexdigest()
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
-    self.client = DBAcademyRestClient() # use dbacademy rest client for illustration. Feel free to update it to use other clients
+    self.client = DBAcademyRestClient() # part of this code uses dbacademy rest client as the SDK migration work is ongoing
     self.workspace_url = self.get_workspace_url()
-    self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 
+    self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 # below DBR 11, html print is not supported
     self.username = self.get_username()
-    self.cloud = self.get_cloud(self.w)
+    self.cloud = self.get_cloud()
   
-  @staticmethod
-  def get_cloud(w) -> str:
-    if w.config.is_azure:
+  def get_cloud(self) -> str:
+    if self.w.config.is_azure:
       return "MSA"
-    elif w.config.is_aws:
+    elif self.w.config.is_aws:
       return "AWS"
-    elif w.config.is_gcp:
+    elif self.w.config.is_gcp:
       return "GCP"
     else: 
       raise NotImplementedError
 
-  @staticmethod
-  def get_workspace_client() -> WorkspaceClient: 
-    ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
-    DATABRICKS_TOKEN = ctx.apiToken().getOrElse(None)
-    DATABRICKS_URL = ctx.apiUrl().getOrElse(None)
-    return WorkspaceClient(host=DATABRICKS_URL, token=DATABRICKS_TOKEN)
-
-  @staticmethod
-  def get_username() -> str:
-    return dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().getOrElse(None)
-
+  def get_username(self) -> str:
+    return self.w.current_user.me().user_name
+      
   @staticmethod
   def get_workspace_url() -> str:
     return spark.conf.get('spark.databricks.workspaceUrl')
