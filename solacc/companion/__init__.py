@@ -78,7 +78,11 @@ class NotebookSolutionCompanion():
       
   @staticmethod
   def get_workspace_url() -> str:
-    return spark.conf.get('spark.databricks.workspaceUrl')
+    try:
+        url = spark.conf.get('spark.databricks.workspaceUrl') # wrap this in try because this config went missing in GCP in July 2023
+    except:
+        url = ""
+    return url
 
   @staticmethod
   def get_notebook_dir() -> str:
