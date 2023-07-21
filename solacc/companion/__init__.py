@@ -178,23 +178,21 @@ class NotebookSolutionCompanion():
           print(f"""Created {params["cluster_name"]} cluster at: {self.workspace_url}/#setting/clusters/{cluster_id}/configuration""")
         
       return cluster_id
-    
-  @staticmethod
-  def customize_cluster_json(input_json):
-    cloud = self.get_cloud()
+
+  def customize_cluster_json(self, input_json):
     node_type_id_dict = copy.deepcopy(input_json["node_type_id"]) 
-    input_json["node_type_id"] = node_type_id_dict[cloud]
-    if cloud == "AWS": 
+    input_json["node_type_id"] = node_type_id_dict[self.cloud]
+    if self.cloud == "AWS": 
       input_json["aws_attributes"] = {
                         "availability": "ON_DEMAND",
                         "zone_id": "auto"
                     }
-    if cloud == "MSA": 
+    if self.cloud == "MSA": 
       input_json["azure_attributes"] = {
                         "availability": "ON_DEMAND_AZURE",
                         "zone_id": "auto"
                     }
-    if cloud == "GCP": 
+    if self.cloud == "GCP": 
       input_json["gcp_attributes"] = {
                         "use_preemptible_executors": False
                     }
