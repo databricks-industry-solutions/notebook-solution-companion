@@ -136,7 +136,7 @@ class NotebookSolutionCompanion():
         dlt_definition_dict['pipeline_id'] = pipeline_id
         # self.client.execute_put_json(f"{self.client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
         request = EditPipeline(pipeline_id = pipeline_id).from_dict(dlt_definition_dict)
-        self.w.pipelines.update(pipeline_id=pipeline_id, request)
+        self.w.pipelines.update(request, pipeline_id=pipeline_id)
     else:
         # response = self.client.pipelines().create_from_dict(dlt_definition_dict)
         request = CreatePipeline().from_dict(dlt_definition_dict)
