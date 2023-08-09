@@ -117,7 +117,7 @@ class NotebookSolutionCompanion():
     else:
       # json_response = self.client.execute_post_json(f"{self.client.endpoint}/api/2.1/jobs/create", params)
       create_job_request = CreateJob().from_dict(params)
-      job_id = self.w.jobs.create(request=create_job_request).job_id
+      job_id = self.w.jobs.create(create_job_request).job_id
       if self.print_html:
           displayHTML(f"""Created <a href="/#job/{job_id}/tasks" target="_blank">{params["name"]}</a> job""")
       else:
@@ -136,11 +136,11 @@ class NotebookSolutionCompanion():
         dlt_definition_dict['pipeline_id'] = pipeline_id
         # self.client.execute_put_json(f"{self.client.endpoint}/api/2.0/pipelines/{pipeline_id}", dlt_definition_dict)
         request = EditPipeline(pipeline_id = pipeline_id).from_dict(dlt_definition_dict)
-        self.w.pipelines.update(pipeline_id=pipeline_id, request=request)
+        self.w.pipelines.update(pipeline_id=pipeline_id, request)
     else:
         # response = self.client.pipelines().create_from_dict(dlt_definition_dict)
         request = CreatePipeline().from_dict(dlt_definition_dict)
-        pipeline_id = self.w.pipelines.create(request=request).pipeline_id
+        pipeline_id = self.w.pipelines.create(request).pipeline_id
         
     return pipeline_id
   
