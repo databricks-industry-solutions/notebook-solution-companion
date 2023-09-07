@@ -52,7 +52,7 @@ class NotebookSolutionCompanion():
     self.job_name = f"[RUNNER] {self.solution_code_name} | {hash_code}" # use hash to differentiate solutions deployed to different paths
     self.client = DBAcademyRestClient() # part of this code uses dbacademy rest client as the SDK migration work is ongoing
     self.workspace_url = self.get_workspace_url()
-    self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0]) >= 11 # below DBR 11, html print is not supported
+    self.print_html = int(spark.conf.get("spark.databricks.clusterUsageTags.sparkVersion").split(".")[0].split("__")[-1]) >= 11 # below DBR 11, html print is not supported
     self.username = self.get_username()
     self.cloud = self.get_cloud()
   
