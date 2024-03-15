@@ -11,7 +11,7 @@ import os
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from databricks.sdk.service.jobs import JobSettings, CreateJob
-from databricks.sdk.service.pipelines import EditPipeline
+from databricks.sdk.service.pipelines import EditPipeline, CreatePipeline
 from databricks.sdk.service.compute import CreateCluster
 
 def init_locals():
